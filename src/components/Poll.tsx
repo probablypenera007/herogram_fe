@@ -15,6 +15,42 @@ const Poll: React.FC = () => {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
 
   useEffect(() => {
+    const pollId = parseInt(id || '0');
+    const userId = pollApi.getCurrentUserId();
+  
+    // 👉 Connect + join room FIRST
+    socketService.connect();
+    socketService.joinPoll(pollId);
+  
+    // ✅ Register listeners EARLY
+    socketService.onVoteUpdate((data) => {
+      console.log("🔥 Real-time vote update received:", data);
+      const currentUserId = pollApi.getCurrentUserId();
+  
+      setPoll(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          votes: data.votes.map(vote => ({
+            optionIndex: vote.optionIndex,
+            count: vote.count.toString(), // match PollType
+            userId: vote.userId
+          }))
+        };
+      });
+  
+      if (currentUserId && data.userId === currentUserId) {
+        setHasVoted(true);
+        const myVote = data.votes.find(v => v.userId === currentUserId);
+        if (myVote) setSelectedOption(myVote.optionIndex);
+      }
+    });
+  
+    socketService.onPollFetched((data) => {
+      console.log("📡 pollFetched received in frontend:", data);
+    });
+  
+    // 👇 Then load data
     const initializePoll = async () => {
       try {
         if (!id) {
@@ -22,20 +58,14 @@ const Poll: React.FC = () => {
           setLoading(false);
           return;
         }
-
-        const pollId = parseInt(id);
-        const userId = pollApi.getCurrentUserId();
-
+  
         const allPolls = await pollApi.getPolls();
         setPollList(allPolls);
-
-        socketService.connect();
-        socketService.joinPoll(pollId);
-
+  
         const pollData = await pollApi.getPoll(pollId);
         const alreadyVoted = userId !== null && pollData.votes.some(v => v.userId === userId);
         const userVote = pollData.votes.find(v => v.userId === userId);
-
+  
         setPoll(pollData);
         setHasVoted(alreadyVoted);
         if (userVote) setSelectedOption(userVote.optionIndex);
@@ -45,41 +75,15 @@ const Poll: React.FC = () => {
         setLoading(false);
       }
     };
-
+  
     initializePoll();
-
-    socketService.onVoteUpdate((data) => {
-      console.log("🔥 Real-time vote update received:", data);
-      const currentUserId = pollApi.getCurrentUserId();
-    
-      setPoll(prev => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          votes: data.votes.map(vote => ({
-            optionIndex: vote.optionIndex,
-            count: vote.count.toString(),
-            userId: vote.userId
-          }))
-        };
-      });
-    
-      if (currentUserId && data.userId === currentUserId) {
-        setHasVoted(true);
-        const myVote = data.votes.find(v => v.userId === currentUserId);
-        if (myVote) setSelectedOption(myVote.optionIndex);
-      }
-    });
-    
-    // 👇 Add this here
-    socketService.onPollFetched((data) => {
-      console.log("📡 pollFetched received in frontend:", data);
-    });
-
+  
+    // 👇 Cleanup
     return () => {
       socketService.disconnect();
     };
   }, [id]);
+
 
   const handleVote = async (optionIndex: number) => {
     if (!id || hasVoted) return;
