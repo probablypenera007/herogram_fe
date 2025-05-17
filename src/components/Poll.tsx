@@ -17,9 +17,7 @@ const Poll: React.FC = () => {
   useEffect(() => {
     const pollId = parseInt(id || '0');
     const userId = pollApi.getCurrentUserId();
-  
-    // 👉 Connect + join room FIRST
-    // socketService.connect();
+
     socketService.joinPoll(pollId);
   
     // ✅ Register listeners EARLY
@@ -78,10 +76,7 @@ const Poll: React.FC = () => {
   
     initializePoll();
   
-    // 👇 Cleanup
-    return () => {
-      socketService.disconnect();
-    };
+
   }, [id]);
 
 
