@@ -19,7 +19,7 @@ const Poll: React.FC = () => {
     const userId = pollApi.getCurrentUserId();
   
     // 👉 Connect + join room FIRST
-    socketService.connect();
+    // socketService.connect();
     socketService.joinPoll(pollId);
   
     // ✅ Register listeners EARLY

@@ -9,59 +9,54 @@ interface VoteUpdate {
     userId: number;
   }[];
 }
+
 class SocketService {
-  private socket: Socket | null = null;
+  public socket: Socket;
 
-  connect() {
-    if (!this.socket) {
-      this.socket = io('http://localhost:3001');
-  
-      this.socket.on('connect', () => {
-        console.log('🟢 Socket.IO connected ✅', this.socket?.id);
-      });
-  
-      this.socket.on('disconnect', () => {
-        console.log('🔴 Socket.IO disconnected ❌');
-      });
-  
-      // ⛔ catch silent failures
-      this.socket.on('connect_error', (err) => {
-        console.error('❌ Socket.IO connect error:', err.message);
-      });
-    }
-  }
+  constructor() {
+    this.socket = io('http://localhost:3001', {
+      reconnection: true,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 500,
+      transports: ['websocket'], 
+    });
 
-  disconnect() {
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket = null;
-    }
+    this.socket.on('connect', () => {
+      console.log('🟢 Socket.IO connected ✅', this.socket?.id);
+    });
+
+    this.socket.on('disconnect', (reason) => {
+      console.warn(`🔴 Socket.IO disconnected ❌: ${reason}`);
+    });
+
+    this.socket.on('reconnect_attempt', (attempt) => {
+      console.info(`♻️ Reconnection attempt #${attempt}`);
+    });
+
+    this.socket.on('reconnect', (attempt) => {
+      console.info(`🔁 Reconnected successfully after ${attempt} tries`);
+    });
   }
 
   joinPoll(pollId: number) {
-    if (this.socket) {
-      this.socket.emit('joinPoll', pollId);
-    }
+    this.socket.emit('joinPoll', pollId);
   }
 
   onVoteUpdate(callback: (data: VoteUpdate) => void) {
-    if (this.socket) {
-      this.socket.on('voteUpdate', callback);
-    }
+    this.socket.on('voteUpdate', callback);
   }
 
   offVoteUpdate(callback: (data: VoteUpdate) => void) {
-    if (this.socket) {
-      this.socket.off('voteUpdate', callback);
-    }
+    this.socket.off('voteUpdate', callback);
   }
 
-  // ✅ Add this:
   onPollFetched(callback: (data: any) => void) {
-    if (this.socket) {
-      this.socket.on('pollFetched', callback);
-    }
+    this.socket.on('pollFetched', callback);
+  }
+
+  offPollFetched(callback: (data: any) => void) {
+    this.socket.off('pollFetched', callback);
   }
 }
 
-export const socketService = new SocketService(); 
+export const socketService = new SocketService();
