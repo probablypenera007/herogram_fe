@@ -134,32 +134,25 @@ const Poll: React.FC = () => {
         <div className="info-message">✅ You have already voted in this poll.</div>
       )}
 
-      <div className="options">
-        {poll.options.map((option, index) => {
-          const voteCount = poll.votes.find(v => v.optionIndex === index)?.count || '0';
-          const percentage = totalVotes > 0 ? (parseInt(voteCount) / totalVotes) * 100 : 0;
-          const isSelected = selectedOption === index;
+<div className="options">
+  {poll.options.map((option, index) => {
+    const isSelected = selectedOption === index;
 
-          return (
-            <div key={index} className={`option ${isSelected ? 'selected' : ''}`}>
-              <button
-                onClick={() => handleVote(index)}
-                className={isSelected ? 'selected' : ''}
-                disabled={poll.isExpired || hasVoted}
-              >
-                {option}
-                {isSelected && <span className="checkmark">✓</span>}
-              </button>
-              <div className="vote-bar">
-                <div className="vote-fill" style={{ width: `${percentage}%` }} />
-              </div>
-              <span className="vote-count">
-                {voteCount} votes ({percentage.toFixed(1)}%)
-              </span>
-            </div>
-          );
-        })}
+    return (
+      <div key={index} className={`option ${isSelected ? 'selected' : ''}`}>
+        <button
+          onClick={() => handleVote(index)}
+          className={isSelected ? 'selected' : ''}
+          disabled={poll.isExpired || hasVoted}
+        >
+          {option}
+          {isSelected && <span className="checkmark">✓</span>}
+        </button>
+        {/* Removed percentage bar and vote count */}
       </div>
+    );
+  })}
+</div>
 
       <div className="total-votes">Total votes: {totalVotes}</div>
 
