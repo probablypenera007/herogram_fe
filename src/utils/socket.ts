@@ -23,8 +23,8 @@ class SocketService {
 
     this.socket.on('connect', () => {
       console.log('🟢 Socket.IO connected ✅', this.socket?.id);
+      console.log("💥 Socket connected status:", this.socket.connected);
     });
-
     this.socket.on('disconnect', (reason) => {
       console.warn(`🔴 Socket.IO disconnected ❌: ${reason}`);
     });
