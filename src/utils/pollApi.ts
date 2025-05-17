@@ -24,6 +24,7 @@ export interface Poll {
   options: string[];
   expiresAt: string;
   votes: { optionIndex: number; count: string }[];
+  isExpired: boolean;
 }
 
 export interface VoteData {
@@ -65,6 +66,11 @@ export const pollApi = {
     return response.data;
   },
 
+  getPolls: async (): Promise<Poll[]> => {
+    const response = await api.get<Poll[]>('/polls');
+    return response.data;
+  },
+
   getPoll: async (id: number): Promise<Poll> => {
     const response = await api.get<Poll>(`/poll/${id}`);
     return response.data;
@@ -72,6 +78,10 @@ export const pollApi = {
 
   vote: async (pollId: number, data: VoteData): Promise<void> => {
     await api.post(`/poll/${pollId}/vote`, data);
+  },
+
+  deletePoll: async (id: number): Promise<void> => {
+    await api.delete(`/poll/${id}`);
   },
 
   getAnonymousToken: async (): Promise<string> => {
