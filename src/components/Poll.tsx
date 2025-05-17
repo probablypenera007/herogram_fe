@@ -26,16 +26,32 @@ const Poll: React.FC = () => {
       const currentUserId = pollApi.getCurrentUserId();
   
       setPoll(prev => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          votes: data.votes.map(vote => ({
-            optionIndex: vote.optionIndex,
-            count: vote.count.toString(), // match PollType
-            userId: vote.userId
-          }))
-        };
-      });
+  if (!prev) return prev;
+
+  // Clone existing vote counts
+  const voteCounts: Record<number, number> = {};
+
+  // Reset counts
+  prev.options.forEach((_, i) => {
+    voteCounts[i] = 0;
+  });
+
+  // Aggregate new vote counts from all users
+  data.votes.forEach(v => {
+    voteCounts[v.optionIndex] = (voteCounts[v.optionIndex] || 0) + 1;
+  });
+
+  const updatedVotes = Object.entries(voteCounts).map(([index, count]) => ({
+    optionIndex: parseInt(index),
+    count: count.toString(),
+    userId: -1 // optional placeholder if not relevant
+  }));
+
+  return {
+    ...prev,
+    votes: updatedVotes
+  };
+});
   
       if (currentUserId && data.userId === currentUserId) {
         setHasVoted(true);
