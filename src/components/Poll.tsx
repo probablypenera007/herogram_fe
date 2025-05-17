@@ -2,14 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { pollApi } from '../utils/pollApi';
 import { socketService } from '../utils/socket';
-
-interface Poll {
-  id: number;
-  question: string;
-  options: string[];
-  expiresAt: string;
-  votes: { optionIndex: number; count: string }[];
-}
+import type { Poll } from '../utils/pollApi';
 
 const Poll: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -27,9 +20,6 @@ const Poll: React.FC = () => {
         }
 
         const pollId = parseInt(id);
-        const token = await pollApi.getAnonymousToken();
-        localStorage.setItem('token', token);
-
         socketService.connect();
         socketService.joinPoll(pollId);
 
@@ -83,13 +73,12 @@ const Poll: React.FC = () => {
     return <div>Poll not found</div>;
   }
 
-  const isExpired = new Date(poll.expiresAt) < new Date();
   const totalVotes = poll.votes.reduce((sum, vote) => sum + parseInt(vote.count), 0);
 
   return (
     <div className="poll">
       <h2>{poll.question}</h2>
-      {isExpired && <div className="expired">This poll has expired</div>}
+      {poll.isExpired && <div className="expired">This poll has expired</div>}
       <div className="options">
         {poll.options.map((option, index) => {
           const voteCount = poll.votes.find(v => v.optionIndex === index)?.count || '0';
@@ -99,7 +88,7 @@ const Poll: React.FC = () => {
             <div key={index} className="option">
               <button
                 onClick={() => handleVote(index)}
-                disabled={isExpired}
+                disabled={poll.isExpired}
               >
                 {option}
               </button>
