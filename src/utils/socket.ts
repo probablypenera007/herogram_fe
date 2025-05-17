@@ -5,11 +5,10 @@ interface VoteUpdate {
   userId: number;
   votes: {
     optionIndex: number;
-    count: string;
+    count: number;
     userId: number;
   }[];
 }
-
 class SocketService {
   private socket: Socket | null = null;
 
@@ -19,6 +18,14 @@ class SocketService {
         auth: {
           token: localStorage.getItem('token')
         }
+      });
+
+      this.socket.on('connect', () => {
+        console.log('🟢 Socket.IO connected ✅', this.socket?.id);
+      });
+
+      this.socket.on('disconnect', () => {
+        console.log('🔴 Socket.IO disconnected ❌');
       });
     }
   }
@@ -45,6 +52,13 @@ class SocketService {
   offVoteUpdate(callback: (data: VoteUpdate) => void) {
     if (this.socket) {
       this.socket.off('voteUpdate', callback);
+    }
+  }
+
+  // ✅ Add this:
+  onPollFetched(callback: (data: any) => void) {
+    if (this.socket) {
+      this.socket.on('pollFetched', callback);
     }
   }
 }
