@@ -12,6 +12,7 @@ const Poll: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [hasVoted, setHasVoted] = useState(false);
   const [pollList, setPollList] = useState<PollType[]>([]);
+  const [selectedOption, setSelectedOption] = useState<number | null>(null);
 
   useEffect(() => {
     const initializePoll = async () => {
@@ -34,9 +35,13 @@ const Poll: React.FC = () => {
         const pollData = await pollApi.getPoll(pollId);
         const userId = pollApi.getCurrentUserId();
         const alreadyVoted = pollData.votes.some(vote => vote.userId === userId);
+        const userVote = pollData.votes.find(vote => vote.userId === userId);
 
         setPoll(pollData);
         setHasVoted(alreadyVoted);
+        if (userVote) {
+          setSelectedOption(userVote.optionIndex);
+        }
       } catch (err: any) {
         setError(err.response?.data?.message || 'Failed to load poll');
       } finally {
@@ -45,19 +50,6 @@ const Poll: React.FC = () => {
     };
 
     initializePoll();
-
-    // socketService.onVoteUpdate((data) => {
-    //   setPoll(prev => {
-    //     if (!prev) return prev;
-    //     return {
-    //       ...prev,
-    //       votes: data.votes.map(vote => ({
-    //         optionIndex: vote.option_index,
-    //         count: vote.count
-    //       }))
-    //     };
-    //   });
-    // });
 
     socketService.onVoteUpdate((data) => {
       console.log("🔥 Incoming vote update via socket:", data);
@@ -77,6 +69,10 @@ const Poll: React.FC = () => {
     
       if (currentUserId && data.userId === currentUserId) {
         setHasVoted(true);
+        const userVote = data.votes.find(vote => vote.userId === currentUserId);
+        if (userVote) {
+          setSelectedOption(userVote.optionIndex);
+        }
       }
     });
     return () => {
@@ -85,10 +81,11 @@ const Poll: React.FC = () => {
   }, [id]);
 
   const handleVote = async (optionIndex: number) => {
-    if (!id) return;
+    if (!id || hasVoted) return;
     try {
       await pollApi.vote(parseInt(id), { optionIndex });
       setHasVoted(true);
+      setSelectedOption(optionIndex);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to vote');
     }
@@ -107,7 +104,6 @@ const Poll: React.FC = () => {
   if (!poll) return <div>Poll not found</div>;
 
   const totalVotes = poll.votes.reduce((sum, vote) => sum + parseInt(vote.count), 0);
-
   const isLastPoll = pollList.findIndex(p => p.id === parseInt(id || '0')) === pollList.length - 1;
 
   return (
@@ -124,14 +120,16 @@ const Poll: React.FC = () => {
         {poll.options.map((option, index) => {
           const voteCount = poll.votes.find(v => v.optionIndex === index)?.count || '0';
           const percentage = totalVotes > 0 ? (parseInt(voteCount) / totalVotes) * 100 : 0;
+          const isSelected = selectedOption === index;
 
           return (
-            <div key={index} className="option">
+            <div key={index} className={`option ${isSelected ? 'selected' : ''}`}>
               <button
                 onClick={() => handleVote(index)}
-                disabled={poll.isExpired || hasVoted}
+                className={isSelected ? 'selected' : ''}
               >
                 {option}
+                {isSelected && <span className="checkmark">✓</span>}
               </button>
               <div className="vote-bar">
                 <div
