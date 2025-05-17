@@ -14,18 +14,19 @@ class SocketService {
 
   connect() {
     if (!this.socket) {
-      this.socket = io('http://localhost:3001', {
-        auth: {
-          token: localStorage.getItem('token')
-        }
-      });
-
+      this.socket = io('http://localhost:3001');
+  
       this.socket.on('connect', () => {
         console.log('🟢 Socket.IO connected ✅', this.socket?.id);
       });
-
+  
       this.socket.on('disconnect', () => {
         console.log('🔴 Socket.IO disconnected ❌');
+      });
+  
+      // ⛔ catch silent failures
+      this.socket.on('connect_error', (err) => {
+        console.error('❌ Socket.IO connect error:', err.message);
       });
     }
   }
