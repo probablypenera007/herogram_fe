@@ -48,22 +48,26 @@ const App: React.FC = () => {
   return (
     <Router>
       <div className="app">
-        <header>
-          <h1>Team Polls</h1>
-          <div className="auth-buttons">
-            {user ? (
-              <>
-                <span>Welcome, {user.name}</span>
-                <button onClick={handleLogout}>Logout</button>
-                {user.role === 'admin' && (
-                  <button onClick={() => window.location.href = '/create'}>Create Poll</button>
-                )}
-              </>
-            ) : (
-              <button onClick={() => setIsAuthModalOpen(true)}>Login/Register</button>
-            )}
-          </div>
-        </header>
+      <header className="app-header">
+  <h1 className="app-title">Team Polls</h1>
+  <div className="auth-container">
+    {user ? (
+      <>
+        <span className="welcome-text">👋 Welcome, <strong>{user.name}</strong></span>
+        <div className="auth-actions">
+          {user.role === 'admin' && (
+            <button className="header-button" onClick={() => window.location.href = '/create'}>
+              ➕ Create Poll
+            </button>
+          )}
+          <button className="header-button" onClick={handleLogout}>🚪 Logout</button>
+        </div>
+      </>
+    ) : (
+      <button className="header-button" onClick={() => setIsAuthModalOpen(true)}>🔐 Login / Register</button>
+    )}
+  </div>
+</header>
 
         {/* 👇 Conditional Routes */}
         {user ? (

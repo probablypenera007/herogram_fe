@@ -408,6 +408,7 @@ nav a:hover {
   background: #4CAF50;
   color: white;
   border: none;
+  margin-top: 10px;
   padding: 10px 20px;
   border-radius: 4px;
   cursor: pointer;
@@ -418,4 +419,16 @@ nav a:hover {
 .dashboard-button:hover,
 .back-button:hover {
   background: #45a049;
+}
+
+
+
+.info-message {
+  background-color: #e6ffed;
+  color: #256029;
+  padding: 0.75rem;
+  border: 1px solid #a3d9a5;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-weight: 500;
 }
