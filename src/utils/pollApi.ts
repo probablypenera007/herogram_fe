@@ -23,7 +23,11 @@ export interface Poll {
   question: string;
   options: string[];
   expiresAt: string;
-  votes: { optionIndex: number; count: string }[];
+  votes: { 
+    optionIndex: number; 
+    count: string;
+    userId?: number;
+  }[];
   isExpired: boolean;
   totalVotes?: number;
 }
@@ -59,6 +63,19 @@ export const pollApi = {
   getCurrentUser: async (): Promise<User> => {
     const response = await api.get<User>('/auth/me');
     return response.data;
+  },
+
+  getCurrentUserId: (): number | null => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        return user.id;
+      } catch {
+        return null;
+      }
+    }
+    return null;
   },
 
   // Poll methods

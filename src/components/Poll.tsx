@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { pollApi } from '../utils/pollApi';
 import { socketService } from '../utils/socket';
-import type { Poll } from '../utils/pollApi';
+import type { Poll as PollType } from '../utils/pollApi';
 
 const Poll: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [poll, setPoll] = useState<Poll | null>(null);
+  const [poll, setPoll] = useState<PollType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

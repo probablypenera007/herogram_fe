@@ -1,6 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 
 interface VoteUpdate {
+  pollId: number;
   votes: {
     option_index: number;
     count: string;
